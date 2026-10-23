@@ -58,3 +58,22 @@ Mapeo de los principios de diseño seguro quebrantados en la aplicación frente 
 | **Fallar cerrado** | El error 500 devuelve el interior del servidor (**SEC-12**) | **A10: Mishandling of Exceptional Conditions** | CWE-209 |
 | **Superficie de ataque** | **SEC-16**: Dependencias con CVE conocidos —una ni se usa— y siguen instaladas | **A03: Software Supply Chain Failures** | CWE-1104 / CWE-1395 |
 
+---
+
+## 📝 Entrega de Reporte (Línea por Línea)
+
+### Tramo 2 · Tres líneas (Lo que encontró el flujo y lo que no vio)
+```text
+dependencias      | SEC-16 | lodash high | permite contaminación de prototipo (Prototype Pollution) y denegación de servicio por expresiones regulares (ReDoS)
+analisis-estatico | SEC-11 | server/src/routes/files.routes.js:43 security/detect-non-literal-fs-filename | permite leer archivos arbitrarios del servidor fuera de uploads/ mediante secuencias ../ (Path Traversal)
+no lo vio         | SEC-06 | Un alumno borra con DELETE /api/tasks/3 una tarea ajena | no la ve porque el análisis estático no conoce las reglas de negocio ni sabe qué usuario es dueño del recurso | rompe Mínimo privilegio
+```
+
+### Tramo 3 · Tres líneas (Clasificación con OWASP Top 10:2025)
+```text
+SEC-02 | El token se puede leer y fabricar a mano | A07 Authentication Failures | la sesión se maneja con un Base64 plano sin firma digital HMAC ni secreto que valide autenticidad
+SEC-05 | Un alumno se hace administrador solo | A01 Broken Access Control | la actualización permite modificar atributos privilegiados (role) por asignación masiva sin validar autorización
+SEC-01 | Las contraseñas se guardan sin proteger | A04 Cryptographic Failures | las credenciales se almacenan y comparan en texto plano sin aplicar funciones de derivación con sal (hashing)
+```
+
+
