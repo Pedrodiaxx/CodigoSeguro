@@ -1,6 +1,6 @@
 # Diagrama de Flujo de Datos (DFD) · DSS
 
-\`\`\`mermaid
+```mermaid
 flowchart LR
   U[Usuario y su navegador]
   API((API Express))
@@ -24,4 +24,4 @@ flowchart LR
   %% F3: Frontera API <-> uploads/
   API -- "F3 · guardar archivo físico" --> UP
   UP -- "F3 · leer flujo del archivo" --> API
-\`\`\`
+```
