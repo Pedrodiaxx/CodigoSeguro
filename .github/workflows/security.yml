@@ -1,0 +1,22 @@
+name: Seguridad
+on: [push, pull_request]
+jobs:
+  dependencias:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: '.nvmrc'
+      - run: npm audit --audit-level=high
+
+  analisis-estatico:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: '.nvmrc'
+      - run: npm ci
+      - run: npx eslint . --max-warnings 0
+        working-directory: server
