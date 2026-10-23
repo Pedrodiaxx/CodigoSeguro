@@ -15,9 +15,10 @@ beforeEach(() => {
 
 describe('Regresión SEC-12: Manejo seguro de errores 500 y fuga de información', () => {
     it('el 500 ya no trae el stack', async () => {
+        // Provocamos un error 500 enviando un POST sin los campos requeridos
         const res = await request(app)
-            .get('/api/tasks/search')
-            .query({ q: "x' AND (SELECT 1 FROM nope)--" })
+            .post('/api/tasks')
+            .send({})
             .set('Authorization', 'Bearer MTphZG1pbg==');
 
         expect(res.status).toBe(500);
@@ -25,6 +26,7 @@ describe('Regresión SEC-12: Manejo seguro de errores 500 y fuga de información
         expect(res.body.query).toBeUndefined();
         expect(res.body.error).toBe('Error interno');
     });
+
 
     it('Joel: la búsqueda ya no manda su consulta', async () => {
         const res = await request(app)

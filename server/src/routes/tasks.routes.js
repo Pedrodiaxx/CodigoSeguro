@@ -21,14 +21,14 @@ tasksRouter.get('/', (req, res) => {
   res.json(tasks);
 });
 
-// GET /api/tasks/search?q=...  — busca tareas por texto
+// GET /api/tasks/search?q=...  — busca tareas por texto con consulta parametrizada
 tasksRouter.get('/search', (req, res) => {
   const q = req.query.q ?? '';
-  const sql = `SELECT id, title, description, due_date, created_by, created_at
-                 FROM tasks
-                WHERE title LIKE '%${q}%' OR description LIKE '%${q}%'`;
-
-  const rows = db.prepare(sql).all();
+  const patron = `%${q}%`;
+  const rows = db.prepare(
+    'SELECT id, title, description, due_date, created_by, created_at ' +
+    'FROM tasks WHERE title LIKE ? OR description LIKE ?'
+  ).all(patron, patron);
   res.json({ rows });
 });
 

@@ -10,30 +10,22 @@ beforeAll(() => {
 });
 
 beforeEach(() => {
-  // Trampa 1: reseteamos la base de datos para asegurar el estado limpio
   resetForTests();
 });
 
 describe('SEC-07: Inyección SQL en búsqueda de tareas', () => {
-  it('la búsqueda con la cadena de inyección devuelve más filas de las que debería', async () => {
-    // 1. Token de un alumno (id: 4)
-    const alumnoToken = Buffer.from('4:alumno').toString('base64');
+  it('Joel: la búsqueda ya no concatena y busca el texto literal', async () => {
+    // 1. Token del alumno
+    const alumnoToken = 'Bearer NDphbHVtbm8=';
 
-    // 2. Trampa 2 resuelta: usamos .query({ q: ... }) de Supertest para no corromper la URL
+    // 2. Enviamos el ataque de inyección SQL
     const res = await request(app)
       .get('/api/tasks/search')
-      .query({ q: "' OR '1'='1" })
-      .set('Authorization', `Bearer ${alumnoToken}`);
+      .query({ q: "%' OR 1=1 --" })
+      .set('Authorization', alumnoToken);
 
-    // 3. Verificamos que la inyección fue exitosa:
-    // Devuelve status 200 y la lista completa de tareas (3 tareas en vez de 0)
+    // 3. Antes devolvía 3 filas (inyección exitosa); ahora debe responder 200 con CERO filas
     expect(res.status).toBe(200);
-    expect(Array.isArray(res.body.rows)).toBe(true);
-    expect(res.body.rows.length).toBe(3);
-
-    // Comprobamos que expone la tarea confidencial del profesor
-    const tareaConfidencial = res.body.rows.find((t) => t.id === 3);
-    expect(tareaConfidencial).toBeDefined();
-    expect(tareaConfidencial.title).toContain('confidencial');
+    expect(res.body.rows).toHaveLength(0);
   });
 });
