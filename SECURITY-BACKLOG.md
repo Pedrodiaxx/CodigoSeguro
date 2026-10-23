@@ -43,3 +43,18 @@ La severidad de cada hallazgo se determina evaluando la **Probabilidad de Explot
 | **SEC-12** | Confidencialidad | Alta | Bajo | 🟡 **Media** | **Al fallar, muestra el detalle interno del error** *(CWE-209 / OWASP A05)* | [`server/src/app.js`](file:///c:/Users/joeld/Downloads/CodigoSeguro/dss-proyecto-base/server/src/app.js#L34-L41) | Provocación de un error interno; el manejador global devuelve `err.stack`, rutas de carpetas del servidor y variables de la petición en el JSON. | En entornos de producción, registrar los detalles técnicos exclusivamente en logs del servidor y responder al cliente con mensajes de error genéricos. |
 | **SEC-16** | Integridad / Confidencialidad | Media | Medio | 🟡 **Media** | **Usa librerías viejas con fallas conocidas** *(CWE-1104 / OWASP A06)* | [`server/package.json`](file:///c:/Users/joeld/Downloads/CodigoSeguro/dss-proyecto-base/server/package.json#L17-L20) | Uso de versiones vulnerables fijadas en dependencias: `lodash: 4.17.20` (Prototype Pollution), `jsonwebtoken: 8.5.1` y `multer: 1.4.4`. | Ejecutar auditorías periódicas con `npm audit`, actualizar librerías a versiones mantenidas y aplicar herramientas SCA en el pipeline de CI/CD. |
 | **SEC-15** | Integridad / Trazabilidad | Alta | Bajo | 🟢 **Baja** | **No queda registro de quién hizo qué** *(CWE-778 / OWASP A09)* | [`server/src/app.js`](file:///c:/Users/joeld/Downloads/CodigoSeguro/dss-proyecto-base/server/src/app.js) y controladores de rutas | La aplicación carece de registro de eventos de seguridad (auditoría de accesos fallidos, cambios de roles, creación/eliminación de datos sensibles). | Implementar logging estructurado centralizado (con herramientas como Winston o Pino) que registre timestamp, usuario, acción realizada e IP de origen. |
+
+---
+
+## 🏛️ Dónde vive cada principio en su aplicación (Tramo 3 · Laboratorio)
+
+Mapeo de los principios de diseño seguro quebrantados en la aplicación frente a las categorías oficiales de **OWASP Top 10 (Edición 2025)** y su correspondiente **CWE**:
+
+| Principio | Dónde se rompe en su App | Categoría · OWASP Top 10:2025 | CWE |
+| :--- | :--- | :---: | :---: |
+| **Mínimo privilegio** | **SEC-04**: Un alumno administra usuarios | **A01: Broken Access Control** | CWE-285 |
+| **Defensa en profundidad** | **SEC-07**: La búsqueda ejecuta lo que le escriben | **A05: Injection** | CWE-89 |
+| **Secure by Default** | El secreto del token viene escrito y en el `.env` (**SEC-14**) | **A02: Security Misconfiguration** *(o A04: Cryptographic Failures)* | CWE-798 |
+| **Fallar cerrado** | El error 500 devuelve el interior del servidor (**SEC-12**) | **A10: Mishandling of Exceptional Conditions** | CWE-209 |
+| **Superficie de ataque** | **SEC-16**: Dependencias con CVE conocidos —una ni se usa— y siguen instaladas | **A03: Software Supply Chain Failures** | CWE-1104 / CWE-1395 |
+
