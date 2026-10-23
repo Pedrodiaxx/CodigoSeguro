@@ -13,23 +13,18 @@ beforeEach(() => {
   resetForTests();
 });
 
-describe('SEC-04: Exposición de usuarios y contraseñas a alumnos', () => {
-  it('un alumno pide GET /api/users y recibe 200, con las contraseñas dentro', async () => {
-    // 1. Token de un alumno legítimo (id: 4, username: alumno)
+describe('SEC-04: Control de acceso por roles (RBAC)', () => {
+  it('Joel: un alumno ya NO puede listar a todos los usuarios', async () => {
+    // 1. Token de un alumno común (id: 4)
     const alumnoToken = Buffer.from('4:alumno').toString('base64');
 
-    // 2. El alumno solicita la lista de usuarios
+    // 2. El alumno intenta pedir la lista de usuarios
     const res = await request(app)
       .get('/api/users')
       .set('Authorization', `Bearer ${alumnoToken}`);
 
-    // 3. Verificamos la vulnerabilidad: responde 200 y es un arreglo
-    expect(res.status).toBe(200);
-    expect(Array.isArray(res.body)).toBe(true);
-
-    // 4. Verificamos que expone al usuario admin y su contraseña en texto claro
-    const adminUser = res.body.find((u) => u.username === 'admin');
-    expect(adminUser).toBeDefined();
-    expect(adminUser.password).toBe('Admin123');
+    // 3. Antes daba 200 (con la lista), ahora debe dar 403 (prohibido)
+    expect(res.status).toBe(403);
+    expect(res.body.error).toBe('No autorizado');
   });
 });

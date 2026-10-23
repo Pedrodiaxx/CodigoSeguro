@@ -2,11 +2,16 @@ import { Router } from 'express';
 import _ from 'lodash';
 import { db } from '../db/index.js';
 import { requireAuth } from '../middleware/auth.js';
+import { requireRole } from '../middleware/authz.js';
+
+
 
 export const usersRouter = Router();
 
-// Todas las rutas de este archivo exigen sesión iniciada.
+// Todas las rutas de este archivo exigen sesión iniciada. y rol de ADMIN
 usersRouter.use(requireAuth);
+usersRouter.use(requireRole('ADMIN'));
+
 
 // GET /api/users  — lista los usuarios
 usersRouter.get('/', (req, res) => {
