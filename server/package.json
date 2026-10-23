@@ -19,6 +19,8 @@
     "multer": "1.4.4"
   },
   "devDependencies": {
+    "eslint": "^10.13.0",
+    "eslint-plugin-security": "^4.2.0",
     "supertest": "^7.0.0",
     "vitest": "^2.1.8"
   }
