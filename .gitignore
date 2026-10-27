@@ -5,6 +5,9 @@ dist/
 # Base de datos generada en tiempo de ejecucion
 server/data/*.db
 server/data/*.db-journal
+data/
+*.db
+*.db-journal
 
 # Archivos subidos por los usuarios
 server/uploads/*
@@ -12,4 +15,5 @@ server/uploads/*
 
 # Variables de entorno y secretos
 .env
+
 
