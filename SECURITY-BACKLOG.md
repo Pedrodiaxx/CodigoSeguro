@@ -76,4 +76,25 @@ SEC-05 | Un alumno se hace administrador solo | A01 Broken Access Control | la a
 SEC-01 | Las contraseñas se guardan sin proteger | A04 Cryptographic Failures | las credenciales se almacenan y comparan en texto plano sin aplicar funciones de derivación con sal (hashing)
 ```
 
+---
+
+## 🏷️ Estado del Proyecto para la Exposición (6 Cerrados vs Deuda Declarada)
+
+> 📄 *Para el desglose completo con comparativas frente a la `v0`, consultar [`EXPOSICION-DEUDA.md`](EXPOSICION-DEUDA.md).*
+
+### 🟢 Los 6 Hallazgos Cerrados en la Unidad II:
+- **SEC-12:** Manejo seguro de errores 500 y fuga de información (con [`regresion-sec12.test.js`](server/tests/regresion-sec12.test.js)).
+- **SEC-06:** Control de acceso por pertenencia/ownership en tareas (con [`sec06.test.js`](server/tests/sec06.test.js)).
+- **SEC-04:** Control de acceso por roles RBAC en usuarios (con [`sec04.test.js`](server/tests/sec04.test.js)).
+- **SEC-07:** Búsqueda parametrizada contra Inyección SQL (con [`sec07.test.js`](server/tests/sec07.test.js)).
+- **SEC-11:** Prevención de Path Traversal en descarga de archivos (con [`regresion-sec11.test.js`](server/tests/regresion-sec11.test.js)).
+- **SEC-14:** Secretos fuera del código y `.env` excluido de Git (con [`regresion-sec14.test.js`](server/tests/regresion-sec14.test.js)).
+
+### 🟡 Deuda Técnica Declarada (Abiertos a propósito para la Unidad III):
+- **SEC-09 (XSS en comentarios):** Demostrado con `<img src=x onerror=alert(1)>`. Pendiente sanitizar con DOMPurify o quitar `dangerouslySetInnerHTML`.
+- **SEC-10 (Subida sin revisar):** Demostrado con archivos sin validar. Pendiente validación de *magic bytes* y cuota de tamaño (5 MB).
+- **El secreto en el historial:** La contraseña vieja de correo sigue visible en commits viejos (`83aa671`). Mitigación: rotación obligatoria de credenciales.
+- **SEC-01, SEC-02, SEC-03, SEC-05, SEC-08, SEC-13, SEC-15, SEC-16, SEC-17:** Pendientes en backlog para la siguiente fase.
+
+
 
