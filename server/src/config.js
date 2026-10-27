@@ -3,12 +3,13 @@
 export const config = {
   port: Number(process.env.PORT) || 4000,
 
-  appSecret: process.env.APP_SECRET || 'dss-secreto-super-seguro-2026',
+  // El secreto ahora viene de la variable de entorno, sin valor por defecto hardcodeado
+  appSecret: process.env.APP_SECRET,
 
   smtp: {
-    host: 'smtp.tecdesoftware.example',
-    user: 'notificaciones@tecdesoftware.example',
-    pass: 'Notif2026!',
+    host: process.env.SMTP_HOST || 'smtp.tecdesoftware.example',
+    user: process.env.SMTP_USER || 'notificaciones@tecdesoftware.example',
+    pass: process.env.SMTP_PASS, // sin contraseña en el código
   },
 
   dbFile: process.env.DB_FILE || 'data/dss.db',
