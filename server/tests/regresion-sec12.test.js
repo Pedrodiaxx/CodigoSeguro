@@ -14,7 +14,7 @@ beforeEach(() => {
 });
 
 describe('Regresión SEC-12: Manejo seguro de errores 500 y fuga de información', () => {
-    it('el 500 ya no trae el stack', async () => {
+    it('Joel: el 500 ya no trae el stack', async () => {
         // Provocamos un error 500 enviando un POST sin los campos requeridos
         const res = await request(app)
             .post('/api/tasks')
