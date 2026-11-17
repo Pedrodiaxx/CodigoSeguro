@@ -5,6 +5,7 @@ import { createRequire } from 'node:module';
 import { mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { config } from '../config.js';
+import { hashPassword } from '../password.js';
 
 // `node:sqlite` no aparece en `module.builtinModules` con su nombre simple
 // (`sqlite`): solo figura la forma con prefijo. Las herramientas que usan esa
@@ -90,7 +91,7 @@ export function seedIfEmpty() {
   const insUser = db.prepare(
     'INSERT INTO users (username, password, email, full_name, phone, role) VALUES (?,?,?,?,?,?)'
   );
-  for (const u of users) insUser.run(...u);
+  for (const u of users) insUser.run(u[0], hashPassword(u[1]), ...u.slice(2));
 
   const insTask = db.prepare(
     'INSERT INTO tasks (title, description, due_date, created_by) VALUES (?,?,?,?)'

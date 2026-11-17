@@ -10,6 +10,7 @@ Todos cuentan con pruebas automatizadas en `server/tests/` que pasan en verde en
 
 | ID | Vulnerabilidad / Debilidad | Estado | Comportamiento en v0 (Antes) | Comportamiento Protegido (Después) | Prueba de Regresión |
 | :--- | :--- | :---: | :--- | :--- | :--- |
+| **SEC-01** | Contraseñas almacenadas en texto plano *(CWE-256)* | **Cerrado** | Contraseñas legibles en base de datos (`Admin123`) y en respuestas de la API | Hasheadas con Argon2id con salt único (19 MiB RAM, 2 pasadas) y eliminadas del JSON | [`regresion-sec01.test.js`](file:///c:/Users/joeld/Downloads/CodigoSeguro/dss-proyecto-base/server/tests/regresion-sec01.test.js) |
 | **SEC-12** | Manejo de errores y fuga de información *(CWE-209)* | **Cerrado** | HTTP 500 exponiendo `err.stack`, rutas de disco y consulta SQL interna | HTTP 500 respondiendo únicamente `{"error": "Error interno"}` sin stack | [`regresion-sec12.test.js`](file:///c:/Users/joeld/Downloads/CodigoSeguro/dss-proyecto-base/server/tests/regresion-sec12.test.js) |
 | **SEC-06** | Modificación/borrado de recursos ajenos (IDOR) *(CWE-639)* | **Cerrado** | Un alumno borraba tareas ajenas con `DELETE /api/tasks/:id` (`204 No Content`) | Middleware `requireOwnership` valida autoría y responde `403 No autorizado` | [`sec06.test.js`](file:///c:/Users/joeld/Downloads/CodigoSeguro/dss-proyecto-base/server/tests/sec06.test.js) |
 | **SEC-04** | Alumno administrando usuarios (RBAC) *(CWE-285)* | **Cerrado** | Un alumno común listaba o creaba usuarios con `GET /api/users` (`200 OK`) | Middleware `requireRole('ADMIN')` restringe el router y responde `403 No autorizado` | [`sec04.test.js`](file:///c:/Users/joeld/Downloads/CodigoSeguro/dss-proyecto-base/server/tests/sec04.test.js) |
@@ -48,13 +49,33 @@ Siguiendo el principio de **honestidad técnica y transparencia**, los siguiente
 ### Hallazgos pendientes para la Unidad III:
 * **SEC-05:** Elevación vertical de privilegios (asignación masiva de rol en perfil).
 * **SEC-02:** Token forjado en Base64 plano (migración a JWT firmado o cookies HttpOnly).
-* **SEC-01:** Hashing de contraseñas con sal (actualmente en texto plano).
 * **SEC-03:** Rate limiting contra ataques de fuerza bruta en login.
 * **SEC-08:** Validación y sanitización estricta de esquemas de entrada (Zod / Joi).
 * **SEC-13:** Configuración estricta de política de orígenes cruzados (CORS).
 * **SEC-15:** Logging centralizado y auditoría de eventos de seguridad.
 * **SEC-16:** Actualización de dependencias desactualizadas reportadas por `npm audit`.
 * **SEC-17:** Forzar HTTPS y atributos de cookies seguras (`Secure`, `SameSite`).
+
+---
+
+## 5. Deuda Técnica Declarada en la Actividad #10 (Sesión 8)
+
+1. **Hashes preexistentes en producción (*OWASP Password Storage Cheat Sheet*):**  
+   Los usuarios en una base de datos real no pueden migrarse de golpe sin conocer sus contraseñas en claro. Se requiere implementar una **migración perezosa en el login (*Lazy Migration*)**: en cada autenticación exitosa, el servidor recalcula el hash con Argon2id y actualiza la fila en SQLite de forma transparente.
+2. **Límite de intentos de login (*SEC-03 / LFD121 Parte II*):**  
+   Argon2id encarece los ataques de fuerza bruta, pero no sustituye un limitador de tasa (*Rate Limiting*). Queda pendiente añadir `express-rate-limit` en `/api/auth/login`.
+3. **Complejidad y longitud de contraseñas (*NIST SP 800-63B*):**  
+   El sistema aún no valida una longitud mínima ni rechaza contraseñas débiles o comúnmente filtradas en diccionarios públicos.
+4. **Seguridad del transporte y sesión (*SEC-02 y SEC-17 / LFD121*):**  
+   El token continúa emitiéndose en Base64 plano, viaja sobre HTTP sin cifrar y se guarda en `localStorage` (programado para la Sesión 9 con HTTPS y cookies HttpOnly).
+
+---
+
+## 6. Declaración de Uso de Inteligencia Artificial (IA)
+
+* **Herramienta utilizada:** Antigravity (asistente de IA basado en LLM).
+* **Alcance del uso:** Asistencia en la elaboración de pruebas automatizadas con Vitest/Supertest (`regresion-sec01.test.js`), script de benchmark de parámetros Argon2id (`costo.mjs`), verificación de consultas SQL seguras en `users.routes.js` y documentación de la deuda técnica.
+* **Validación humana:** Todo el código fue inspeccionado, ejecutado localmente, medido (con tiempos reales de hardware) y verificado con las 13 pruebas automatizadas pasando al 100% en verde por el alumno Joel.
 
 ---
 

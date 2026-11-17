@@ -1,6 +1,7 @@
 // Emisión y verificación del "token" de sesión.
 
 import { db } from './db/index.js';
+import { verifyPassword } from './password.js';
 
 export function issueToken(user) {
   return Buffer.from(`${user.id}:${user.username}`).toString('base64');
@@ -25,6 +26,6 @@ export function verifyToken(token) {
 export function findUserByCredentials(username, password) {
   const user = db.prepare('SELECT * FROM users WHERE username = ?').get(username);
   if (!user) return null;
-  if (user.password !== password) return null;
+  if (!verifyPassword(password, user.password)) return null;
   return user;
 }
