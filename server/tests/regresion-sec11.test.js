@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import request from 'supertest';
 import { createApp } from '../src/app.js';
 import { resetForTests } from '../src/db/index.js';
+import { tokenDe } from './token.js';
 
 describe('SEC-11: Path Traversal en descarga de archivos', () => {
     beforeEach(() => resetForTests());
@@ -10,7 +11,7 @@ describe('SEC-11: Path Traversal en descarga de archivos', () => {
         const res = await request(createApp())
             .get('/api/files/raw')
             .query({ name: '../src/config.js' })
-            .set('Authorization', 'Bearer NDphbHVtbm8=');
+            .set('Authorization', `Bearer ${tokenDe(4)}`);
 
         // Antes respondía 200 (filtrando el archivo); ahora debe dar 404 (no encontrado)
         expect(res.status).toBe(404);

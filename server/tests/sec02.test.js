@@ -15,7 +15,7 @@ beforeEach(() => {
 });
 
 describe('SEC-02: Token forjado', () => {
-  it('un token fabricado con base64("1:admin") entra como administrador', async () => {
+  it('Esteban Priego: un token fabricado con base64("1:admin") ya NO entra y responde 401', async () => {
     // 1. Fabricamos el token a mano sin saber la contraseña
     const forgedToken = Buffer.from('1:admin').toString('base64');
 
@@ -24,9 +24,7 @@ describe('SEC-02: Token forjado', () => {
       .get('/api/auth/me')
       .set('Authorization', `Bearer ${forgedToken}`);
 
-    // 3. Afirmaciones (Asserts): el servidor nos acepta y nos reconoce como ADMIN
-    expect(res.status).toBe(200);
-    expect(res.body.username).toBe('admin');
-    expect(res.body.role).toBe('ADMIN');
+    // 3. Afirmaciones (Asserts): antes 200, ahora debe dar 401 (el token inventado ya no entra)
+    expect(res.status).toBe(401);
   });
 });

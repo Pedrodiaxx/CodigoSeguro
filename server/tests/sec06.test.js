@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, beforeAll } from 'vitest';
 import request from 'supertest';
 import { createApp } from '../src/app.js';
 import { resetForTests } from '../src/db/index.js';
+import { tokenDe } from './token.js';
 
 let app;
 
@@ -15,8 +16,8 @@ beforeEach(() => {
 
 describe('SEC-06: Control de acceso a objetos (Ownership)', () => {
   it('Joel: un alumno YA NO borra una tarea ajena', async () => {
-    // 1. Token de un alumno (id: 4)
-    const alumnoToken = 'Bearer NDphbHVtbm8=';
+    // 1. Token de un alumno (id: 4) con token firmado válido
+    const alumnoToken = `Bearer ${tokenDe(4)}`;
 
     // 2. El alumno intenta borrar la tarea 3 (creada por el profesor)
     const res = await request(app)

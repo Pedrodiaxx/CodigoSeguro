@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, beforeAll } from 'vitest';
 import request from 'supertest';
 import { createApp } from '../src/app.js';
 import { resetForTests } from '../src/db/index.js';
+import { tokenDe } from './token.js';
 
 let app;
 
@@ -15,8 +16,8 @@ beforeEach(() => {
 
 describe('SEC-07: Inyección SQL en búsqueda de tareas', () => {
   it('Joel: la búsqueda ya no concatena y busca el texto literal', async () => {
-    // 1. Token del alumno
-    const alumnoToken = 'Bearer NDphbHVtbm8=';
+    // 1. Token del alumno firmado con HMAC
+    const alumnoToken = `Bearer ${tokenDe(4)}`;
 
     // 2. Enviamos el ataque de inyección SQL
     const res = await request(app)

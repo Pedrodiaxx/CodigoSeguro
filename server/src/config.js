@@ -1,4 +1,14 @@
 // Configuración de la aplicación.
+import { resolve } from 'node:path';
+
+try {
+  // Carga variables del archivo .env si está disponible
+  process.loadEnvFile?.(resolve(process.cwd(), '.env'));
+} catch {
+  try {
+    process.loadEnvFile?.();
+  } catch {}
+}
 
 export const config = {
   port: Number(process.env.PORT) || 4000,

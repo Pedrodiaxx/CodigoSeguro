@@ -5,13 +5,14 @@
   "type": "module",
   "main": "src/index.js",
   "scripts": {
-    "dev": "node --disable-warning=ExperimentalWarning --watch src/index.js",
-    "start": "node --disable-warning=ExperimentalWarning src/index.js",
+    "dev": "node --disable-warning=ExperimentalWarning --env-file-if-exists=../.env --watch src/index.js",
+    "start": "node --disable-warning=ExperimentalWarning --env-file-if-exists=../.env src/index.js",
     "test": "vitest run",
     "test:watch": "vitest",
     "db:reset": "node --disable-warning=ExperimentalWarning src/db/reset.js"
   },
   "dependencies": {
+    "argon2": "^0.45.2",
     "cors": "^2.8.5",
     "express": "^4.21.2",
     "jsonwebtoken": "8.5.1",

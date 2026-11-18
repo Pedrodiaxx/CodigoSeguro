@@ -3,8 +3,9 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import request from 'supertest';
 import { createApp } from '../src/app.js';
 import { db, resetForTests } from '../src/db/index.js';
+import { tokenDe } from './token.js';
 
-const tokenAdmin = 'MTphZG1pbg=='; // 1:admin · Token de administrador
+const tokenAdmin = () => tokenDe(1); // 1:admin · Token de administrador válido firmado con HMAC
 
 describe('SEC-01 contraseñas con Argon2id', () => {
   beforeEach(() => resetForTests());
@@ -27,14 +28,14 @@ describe('SEC-01 contraseñas con Argon2id', () => {
 
   it('Joel: la API nunca devuelve el campo password', async () => {
     const res = await request(createApp()).get('/api/users')
-      .set('Authorization', `Bearer ${tokenAdmin}`);
+      .set('Authorization', `Bearer ${tokenAdmin()}`);
     expect(res.status).toBe(200);
     expect(res.body[0].password).toBeUndefined();
   });
 
   it('Joel: un usuario creado por la API se guarda con hash', async () => {
     await request(createApp()).post('/api/users')
-      .set('Authorization', `Bearer ${tokenAdmin}`)
+      .set('Authorization', `Bearer ${tokenAdmin()}`)
       .send({ username: 'nuevo', password: 'Nuevo123', email: 'n@x.mx', full_name: 'Nuevo' });
 
     const row = db.prepare("SELECT password FROM users WHERE username='nuevo'").get();

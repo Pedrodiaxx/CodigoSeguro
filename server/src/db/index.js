@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS users (
   full_name  TEXT    NOT NULL,
   phone      TEXT,
   role       TEXT    NOT NULL DEFAULT 'ALUMNO',
+  token_version INTEGER NOT NULL DEFAULT 0,
   created_at TEXT    NOT NULL DEFAULT (datetime('now'))
 );
 
@@ -75,6 +76,9 @@ CREATE TABLE IF NOT EXISTS comments (
 
 export function initSchema() {
   db.exec(SCHEMA);
+  try {
+    db.exec('ALTER TABLE users ADD COLUMN token_version INTEGER NOT NULL DEFAULT 0;');
+  } catch {}
 }
 
 export function seedIfEmpty() {
