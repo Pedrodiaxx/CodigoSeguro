@@ -1,10 +1,11 @@
 import { Router } from 'express';
 import { findUserByCredentials, issueToken } from '../auth.js';
 import { requireAuth } from '../middleware/auth.js';
+import { db } from '../db/index.js';
 
 export const authRouter = Router();
 
-// POST /api/auth/login  — inicia sesión y devuelve el token
+// POST /api/auth/login  — inicia sesión y devuelve el token en una cookie segura (SEC-17)
 authRouter.post('/login', (req, res) => {
   const { username, password } = req.body ?? {};
 
@@ -13,8 +14,13 @@ authRouter.post('/login', (req, res) => {
     return res.status(401).json({ error: 'Credenciales invalidas' });
   }
 
+  res.cookie('token', issueToken(user), {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'strict',
+    maxAge: 2 * 60 * 60 * 1000,
+  });
   return res.json({
-    token: issueToken(user),
     user: {
       id: user.id,
       username: user.username,
@@ -27,4 +33,11 @@ authRouter.post('/login', (req, res) => {
 // GET /api/auth/me  — datos del usuario de la sesión actual
 authRouter.get('/me', requireAuth, (req, res) => {
   res.json(req.user);
+});
+
+// POST /api/auth/logout — cierra la sesión EN EL SERVIDOR: todo token anterior deja de servir
+authRouter.post('/logout', requireAuth, (req, res) => {
+  db.prepare('UPDATE users SET token_version = token_version + 1 WHERE id = ?').run(req.user.id);
+  res.clearCookie('token');
+  res.status(204).end();
 });

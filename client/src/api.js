@@ -1,11 +1,5 @@
 // Cliente HTTP de la aplicación.
 
-const TOKEN_KEY = 'token';
-
-export const getToken = () => localStorage.getItem(TOKEN_KEY);
-export const setToken = (t) => localStorage.setItem(TOKEN_KEY, t);
-export const clearToken = () => localStorage.removeItem(TOKEN_KEY);
-
 export const getUser = () => {
   const raw = localStorage.getItem('user');
   return raw ? JSON.parse(raw) : null;
@@ -15,9 +9,6 @@ export const setUser = (u) => localStorage.setItem('user', JSON.stringify(u));
 async function req(path, options = {}) {
   const headers = { ...(options.headers ?? {}) };
   if (!(options.body instanceof FormData)) headers['Content-Type'] = 'application/json';
-
-  const token = getToken();
-  if (token) headers.Authorization = `Bearer ${token}`;
 
   const res = await fetch(`/api${path}`, { ...options, headers });
   const text = await res.text();
@@ -30,6 +21,7 @@ async function req(path, options = {}) {
 export const api = {
   login: (username, password) =>
     req('/auth/login', { method: 'POST', body: JSON.stringify({ username, password }) }),
+  logout: () => req('/auth/logout', { method: 'POST' }),
 
   listTasks: () => req('/tasks'),
   searchTasks: (q) => req(`/tasks/search?q=${encodeURIComponent(q)}`),

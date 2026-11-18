@@ -1,6 +1,9 @@
 import { Router } from 'express';
 import { db } from '../db/index.js';
 import { requireAuth } from '../middleware/auth.js';
+import { requireOwnership } from '../middleware/authz.js';
+const cargarTarea = (id) => db.prepare('SELECT * FROM tasks WHERE id = ?').get(id);
+
 
 export const tasksRouter = Router();
 
@@ -18,15 +21,15 @@ tasksRouter.get('/', (req, res) => {
   res.json(tasks);
 });
 
-// GET /api/tasks/search?q=...  — busca tareas por texto
+// GET /api/tasks/search?q=...  — busca tareas por texto con consulta parametrizada
 tasksRouter.get('/search', (req, res) => {
   const q = req.query.q ?? '';
-  const sql = `SELECT id, title, description, due_date, created_by, created_at
-                 FROM tasks
-                WHERE title LIKE '%${q}%' OR description LIKE '%${q}%'`;
-
-  const rows = db.prepare(sql).all();
-  res.json({ sql, rows });
+  const patron = `%${q}%`;
+  const rows = db.prepare(
+    'SELECT id, title, description, due_date, created_by, created_at ' +
+    'FROM tasks WHERE title LIKE ? OR description LIKE ?'
+  ).all(patron, patron);
+  res.json({ rows });
 });
 
 // GET /api/tasks/:id  — una tarea
@@ -48,7 +51,7 @@ tasksRouter.post('/', (req, res) => {
 });
 
 // PATCH /api/tasks/:id  — modifica una tarea
-tasksRouter.patch('/:id', (req, res) => {
+tasksRouter.patch('/:id', requireOwnership(cargarTarea), (req, res) => {
   const id = Number(req.params.id);
   const task = db.prepare('SELECT * FROM tasks WHERE id = ?').get(id);
   if (!task) return res.status(404).json({ error: 'Tarea no encontrada' });
@@ -65,7 +68,7 @@ tasksRouter.patch('/:id', (req, res) => {
 });
 
 // DELETE /api/tasks/:id  — borra una tarea
-tasksRouter.delete('/:id', (req, res) => {
+tasksRouter.delete('/:id', requireOwnership(cargarTarea), (req, res) => {
   const id = Number(req.params.id);
   db.prepare('DELETE FROM comments WHERE task_id = ?').run(id);
   db.prepare('DELETE FROM submissions WHERE task_id = ?').run(id);

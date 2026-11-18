@@ -8,5 +8,6 @@ export default defineConfig({
     // (server/data/dss.db). Ejecutarlos en paralelo hace que resetForTests()
     // de un archivo choque con el de otro y falle con "database is locked".
     fileParallelism: false,
+    env: { APP_SECRET: 'secreto-solo-para-pruebas' },
   },
 });

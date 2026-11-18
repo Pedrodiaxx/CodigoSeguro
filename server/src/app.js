@@ -7,6 +7,8 @@ import { filesRouter } from './routes/files.routes.js';
 
 export function createApp() {
   const app = express();
+  app.disable('x-powered-by'); //prohíbe a Express enviar la cabecera X-Powered-By: Express en cada respuesta
+
 
   app.use(
     cors({
@@ -32,12 +34,8 @@ export function createApp() {
   });
 
   app.use((err, req, res, next) => {
-    res.status(500).json({
-      error: err.message,
-      stack: err.stack,
-      query: req.query,
-      body: req.body,
-    });
+    console.error(err); // El detalle técnico se imprime SOLO en la consola del servidor
+    res.status(err.status || 500).json({ error: 'Error interno' });
   });
 
   return app;
