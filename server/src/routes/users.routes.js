@@ -2,55 +2,68 @@ import { Router } from 'express';
 import _ from 'lodash';
 import { db } from '../db/index.js';
 import { requireAuth } from '../middleware/auth.js';
+import { requireRole } from '../middleware/authz.js';
+import { hashPassword } from '../password.js';
 
 export const usersRouter = Router();
 
-// Todas las rutas de este archivo exigen sesión iniciada.
+// Todas las rutas de este archivo exigen sesión iniciada y rol de ADMIN (SEC-04)
 usersRouter.use(requireAuth);
+usersRouter.use(requireRole('ADMIN'));
+
+// Columnas seguras para responder al cliente: todas MENOS password (SEC-01)
+const COLUMNAS = 'id, username, email, full_name, phone, role, created_at';
 
 // GET /api/users  — lista los usuarios
 usersRouter.get('/', (req, res) => {
-  const users = db.prepare('SELECT * FROM users ORDER BY id').all();
+  const users = db.prepare(`SELECT ${COLUMNAS} FROM users ORDER BY id`).all();
   res.json(users);
 });
 
 // GET /api/users/:id  — un usuario
 usersRouter.get('/:id', (req, res) => {
-  const user = db.prepare('SELECT * FROM users WHERE id = ?').get(Number(req.params.id));
+  const user = db.prepare(`SELECT ${COLUMNAS} FROM users WHERE id = ?`).get(Number(req.params.id));
   if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
   res.json(user);
 });
 
-// POST /api/users  — crea un usuario
+// POST /api/users  — crea un usuario (hasheando la contraseña)
 usersRouter.post('/', (req, res) => {
   const { username, password, email, full_name, phone, role } = req.body ?? {};
 
   const info = db
     .prepare('INSERT INTO users (username, password, email, full_name, phone, role) VALUES (?,?,?,?,?,?)')
-    .run(username, password, email, full_name, phone ?? null, role ?? 'ALUMNO');
+    .run(username, hashPassword(password), email, full_name, phone ?? null, role ?? 'ALUMNO');
 
-  const created = db.prepare('SELECT * FROM users WHERE id = ?').get(info.lastInsertRowid);
+  const created = db.prepare(`SELECT ${COLUMNAS} FROM users WHERE id = ?`).get(info.lastInsertRowid);
   res.status(201).json(created);
 });
 
 // PATCH /api/users/:id  — modifica un usuario
 usersRouter.patch('/:id', (req, res) => {
   const id = Number(req.params.id);
+  // Este SELECT * se queda para conservar el password existente si el body no lo incluye
   const current = db.prepare('SELECT * FROM users WHERE id = ?').get(id);
   if (!current) return res.status(404).json({ error: 'Usuario no encontrado' });
 
   const merged = _.merge({}, current, req.body ?? {});
 
+  // Si el cuerpo trae una nueva contraseña, se hashea con Argon2id
+  if (req.body?.password) {
+    merged.password = hashPassword(req.body.password);
+  }
+
   db.prepare(
     'UPDATE users SET username=?, password=?, email=?, full_name=?, phone=?, role=? WHERE id=?'
   ).run(merged.username, merged.password, merged.email, merged.full_name, merged.phone ?? null, merged.role, id);
 
-  res.json(db.prepare('SELECT * FROM users WHERE id = ?').get(id));
+  res.json(db.prepare(`SELECT ${COLUMNAS} FROM users WHERE id = ?`).get(id));
 });
 
 // DELETE /api/users/:id  — borra un usuario
 usersRouter.delete('/:id', (req, res) => {
   const id = Number(req.params.id);
+  db.prepare('DELETE FROM comments WHERE author_id = ?').run(id);
   db.prepare('DELETE FROM users WHERE id = ?').run(id);
   res.status(204).end();
 });

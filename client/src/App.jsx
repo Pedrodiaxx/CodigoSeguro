@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { api, getToken, getUser, setToken, setUser, clearToken } from './api.js';
+import { api, getUser, setUser } from './api.js';
 
 function Login({ onLogin }) {
   const [username, setUsername] = useState('alumno');
@@ -11,7 +11,6 @@ function Login({ onLogin }) {
     setError(null);
     try {
       const data = await api.login(username, password);
-      setToken(data.token);
       setUser(data.user);
       onLogin(data.user);
     } catch (err) {
@@ -198,7 +197,7 @@ export default function App() {
   const [user, setUsuario] = useState(getUser());
   const [tab, setTab] = useState('usuarios');
 
-  if (!getToken() || !user) return <div className="app"><Login onLogin={setUsuario} /></div>;
+  if (!user) return <div className="app"><Login onLogin={setUsuario} /></div>;
 
   return (
     <div className="app">
@@ -206,7 +205,7 @@ export default function App() {
         <h1>Gestor de Entregas Académicas</h1>
         <div>
           <span className="badge">{user.full_name} · {user.role}</span>
-          <button onClick={() => { clearToken(); localStorage.removeItem('user'); setUsuario(null); }}>
+          <button onClick={() => api.logout().finally(() => { localStorage.removeItem('user'); setUsuario(null); })}>
             Salir
           </button>
         </div>

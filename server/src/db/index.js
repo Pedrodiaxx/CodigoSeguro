@@ -5,6 +5,7 @@ import { createRequire } from 'node:module';
 import { mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { config } from '../config.js';
+import { hashPassword } from '../password.js';
 
 // `node:sqlite` no aparece en `module.builtinModules` con su nombre simple
 // (`sqlite`): solo figura la forma con prefijo. Las herramientas que usan esa
@@ -32,6 +33,7 @@ CREATE TABLE IF NOT EXISTS users (
   full_name  TEXT    NOT NULL,
   phone      TEXT,
   role       TEXT    NOT NULL DEFAULT 'ALUMNO',
+  token_version INTEGER NOT NULL DEFAULT 0,
   created_at TEXT    NOT NULL DEFAULT (datetime('now'))
 );
 
@@ -74,6 +76,9 @@ CREATE TABLE IF NOT EXISTS comments (
 
 export function initSchema() {
   db.exec(SCHEMA);
+  try {
+    db.exec('ALTER TABLE users ADD COLUMN token_version INTEGER NOT NULL DEFAULT 0;');
+  } catch {}
 }
 
 export function seedIfEmpty() {
@@ -90,7 +95,7 @@ export function seedIfEmpty() {
   const insUser = db.prepare(
     'INSERT INTO users (username, password, email, full_name, phone, role) VALUES (?,?,?,?,?,?)'
   );
-  for (const u of users) insUser.run(...u);
+  for (const u of users) insUser.run(u[0], hashPassword(u[1]), ...u.slice(2));
 
   const insTask = db.prepare(
     'INSERT INTO tasks (title, description, due_date, created_by) VALUES (?,?,?,?)'

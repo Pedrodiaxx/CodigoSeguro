@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import multer from 'multer';
 import { createReadStream } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { join, sep, resolve } from 'node:path';
 import { db } from '../db/index.js';
 import { config } from '../config.js';
 import { requireAuth } from '../middleware/auth.js';
@@ -34,16 +34,22 @@ filesRouter.get('/', (req, res) => {
   res.json(db.prepare('SELECT * FROM files ORDER BY id').all());
 });
 
-// GET /api/files/raw?name=...  — devuelve un archivo por su nombre
+// GET /api/files/raw?name=...  — devuelve un archivo por su nombre de forma segura
 filesRouter.get('/raw', (req, res) => {
   const name = String(req.query.name ?? '');
-  const target = join(uploadRoot, name);
+  const target = resolve(uploadRoot, name);
+
+  // ¿La ruta absoluta calculada sigue estando dentro de la carpeta uploads?
+  if (!target.startsWith(uploadRoot + sep)) {
+    return res.status(404).json({ error: 'Archivo no encontrado' });
+  }
 
   res.type('text/plain');
   createReadStream(target)
     .on('error', () => res.status(404).json({ error: 'Archivo no encontrado' }))
     .pipe(res);
 });
+
 
 // GET /api/files/:id/download  — descarga un archivo
 filesRouter.get('/:id/download', (req, res) => {
