@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import { auditoria } from './log.js';
 import { authRouter } from './routes/auth.routes.js';
 import { usersRouter } from './routes/users.routes.js';
 import { tasksRouter } from './routes/tasks.routes.js';
@@ -19,6 +20,8 @@ export function createApp() {
 
   app.use(express.json({ limit: '50mb' }));
   app.use(express.urlencoded({ extended: true }));
+
+  app.use(auditoria); // SEC-15
 
   app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', version: '0.1.0-vulnerable' });

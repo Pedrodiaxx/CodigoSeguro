@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { findUserByCredentials, issueToken } from '../auth.js';
 import { requireAuth } from '../middleware/auth.js';
 import { db } from '../db/index.js';
+import { log } from '../log.js';
 
 export const authRouter = Router();
 
@@ -11,8 +12,11 @@ authRouter.post('/login', (req, res) => {
 
   const user = findUserByCredentials(username, password);
   if (!user) {
+    log.warn({ evento: 'login_fallido', usuario: username, ip: req.ip }, 'login fallido');
     return res.status(401).json({ error: 'Credenciales invalidas' });
   }
+
+  log.info({ evento: 'login', usuario: user.id, ip: req.ip }, 'login correcto');
 
   res.cookie('token', issueToken(user), {
     httpOnly: true,
@@ -38,6 +42,7 @@ authRouter.get('/me', requireAuth, (req, res) => {
 // POST /api/auth/logout — cierra la sesión EN EL SERVIDOR: todo token anterior deja de servir
 authRouter.post('/logout', requireAuth, (req, res) => {
   db.prepare('UPDATE users SET token_version = token_version + 1 WHERE id = ?').run(req.user.id);
+  log.info({ evento: 'logout', usuario: req.user.id, ip: req.ip }, 'sesión cerrada');
   res.clearCookie('token');
   res.status(204).end();
 });
